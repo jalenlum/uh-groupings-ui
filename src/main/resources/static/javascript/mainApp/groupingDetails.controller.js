@@ -13,9 +13,10 @@
      * @param Message - message object constant from app.constants.js
      * @param Threshold - threshold object constant from app.constants.js
      * @param Utility - utility function constant from app.constants.js
+     * @param $timeout - AngularJS wrapper for window.setTimeout
      */
     function GroupingDetailsJsController($scope, $controller, $window, $uibModal, groupingsService, PAGE_SIZE, Message,
-        Threshold, Utility, ORPHAN_HELP_URL) {
+        Threshold, Utility, ORPHAN_HELP_URL, $timeout) {
 
         $scope.orphanHelpUrl = ORPHAN_HELP_URL;
         $scope.isOrphanMember = (member) => member && member.orphan === true;
@@ -39,6 +40,7 @@
         $scope.pagedItemsGroupings = [];
         $scope.currentPageGroupings = 0;
         $scope.selectedGrouping = {};
+        $scope.pathCopied = false;
 
         $scope.groupingBasis = [];
         $scope.pagedItemsBasis = [];
@@ -476,6 +478,30 @@
          * Check the length of the text string entered in the description form box, for error handling of max length
          */
         $scope.descriptionLengthWarning = () => (String($scope.modelDescription).length > $scope.maxDescriptionLength - 1);
+
+        /**
+         * Copy the selected grouping's path to the clipboard and briefly show success feedback.
+         */
+        $scope.copySelectedGroupingPath = () => {
+            const path = $scope.selectedGrouping.path;
+            if (!path) {
+                return;
+            }
+            const textarea = document.createElement("textarea");
+            textarea.value = path;
+            textarea.setAttribute("readonly", "");
+            textarea.style.position = "absolute";
+            textarea.style.left = "-9999px";
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand("copy");
+            document.body.removeChild(textarea);
+
+            $scope.pathCopied = true;
+            $timeout(() => {
+                $scope.pathCopied = false;
+            }, 1500);
+        };
 
         /**
          * Enable or disable editing of a Grouping's description, from selected-grouping.html.
