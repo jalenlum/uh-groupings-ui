@@ -479,6 +479,8 @@
          */
         $scope.descriptionLengthWarning = () => (String($scope.modelDescription).length > $scope.maxDescriptionLength - 1);
 
+        let pathCopiedTimeout;
+
         /**
          * Copy the selected grouping's path to the clipboard and briefly show success feedback.
          */
@@ -498,10 +500,15 @@
             document.body.removeChild(textarea);
 
             $scope.pathCopied = true;
-            $timeout(() => {
+            $timeout.cancel(pathCopiedTimeout);
+            pathCopiedTimeout = $timeout(() => {
                 $scope.pathCopied = false;
             }, 1500);
         };
+
+        $scope.$on("$destroy", () => {
+            $timeout.cancel(pathCopiedTimeout);
+        });
 
         /**
          * Enable or disable editing of a Grouping's description, from selected-grouping.html.

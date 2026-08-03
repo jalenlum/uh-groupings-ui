@@ -553,6 +553,16 @@ describe("GroupingController", () => {
             expect(scope.pathCopied).toBeFalse();
         });
 
+        it("should keep pathCopied true when copying again before the reset elapses", () => {
+            scope.copySelectedGroupingPath();
+            timeout.flush(1000);
+            scope.copySelectedGroupingPath();
+            timeout.flush(1000);
+            expect(scope.pathCopied).toBeTrue();
+            timeout.flush(500);
+            expect(scope.pathCopied).toBeFalse();
+        });
+
         it("should not copy or set pathCopied when path is missing", () => {
             scope.selectedGrouping = {};
             scope.copySelectedGroupingPath();
