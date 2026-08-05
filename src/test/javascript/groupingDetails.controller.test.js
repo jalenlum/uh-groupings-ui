@@ -530,6 +530,47 @@ describe("GroupingController", () => {
         });
     });
 
+    describe("copySelectedGroupingPath", () => {
+        let timeout;
+
+        beforeEach(inject(($timeout) => {
+            timeout = $timeout;
+            scope.selectedGrouping = { path: "tmp:mhodges:mh-aux" };
+            scope.pathCopied = false;
+            spyOn(document, "execCommand").and.returnValue(true);
+        }));
+
+        it("should copy the selected grouping path and set pathCopied to true", () => {
+            scope.copySelectedGroupingPath();
+            expect(document.execCommand).toHaveBeenCalledWith("copy");
+            expect(scope.pathCopied).toBeTrue();
+        });
+
+        it("should reset pathCopied to false after timeout", () => {
+            scope.copySelectedGroupingPath();
+            expect(scope.pathCopied).toBeTrue();
+            timeout.flush(1500);
+            expect(scope.pathCopied).toBeFalse();
+        });
+
+        it("should keep pathCopied true when copying again before the reset elapses", () => {
+            scope.copySelectedGroupingPath();
+            timeout.flush(1000);
+            scope.copySelectedGroupingPath();
+            timeout.flush(1000);
+            expect(scope.pathCopied).toBeTrue();
+            timeout.flush(500);
+            expect(scope.pathCopied).toBeFalse();
+        });
+
+        it("should not copy or set pathCopied when path is missing", () => {
+            scope.selectedGrouping = {};
+            scope.copySelectedGroupingPath();
+            expect(document.execCommand).not.toHaveBeenCalled();
+            expect(scope.pathCopied).toBeFalse();
+        });
+    });
+
     describe("cancelDescriptionEdit", () => {
         it("should set the modelDescription to the groupingDescription", () => {
             scope.cancelDescriptionEdit();
