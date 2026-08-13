@@ -106,6 +106,15 @@ public class HttpRequestServiceTest {
     }
 
     @Test
+    public void constructorRequiresApiBase() {
+        JwtService jwtService = mock(JwtService.class);
+        assertThrows(IllegalArgumentException.class,
+                () -> new HttpRequestService(jwtService, null));
+        assertThrows(IllegalArgumentException.class,
+                () -> new HttpRequestService(jwtService, " "));
+    }
+
+    @Test
     public void toRelativePathRejectsForeignHost() {
         assertThrows(IllegalArgumentException.class,
                 () -> httpRequestService.toRelativePath("http://evil.example/members"));
@@ -113,6 +122,16 @@ public class HttpRequestServiceTest {
                 () -> httpRequestService.toRelativePath("//evil.example/members"));
         assertThrows(IllegalArgumentException.class,
                 () -> httpRequestService.resolveApiUri("http://evil.example/members"));
+    }
+
+    @Test
+    public void toRelativePathRejectsPrefixThatIsNotBaseBoundary() {
+        JwtService jwtService = mock(JwtService.class);
+        HttpRequestService service = new HttpRequestService(jwtService, "http://localhost:8081/api");
+
+        assertThrows(IllegalArgumentException.class,
+                () -> service.toRelativePath("http://localhost:8081/apix/members"));
+        assertEquals("/members", service.toRelativePath("http://localhost:8081/api/members"));
     }
 
     private void sendJson(HttpExchange exchange, String body) throws IOException {

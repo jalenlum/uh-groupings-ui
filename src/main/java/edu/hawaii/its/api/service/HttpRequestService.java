@@ -23,6 +23,9 @@ public class HttpRequestService {
     public HttpRequestService(JwtService jwtService, @Value("${url.api.2.1.base}") String apiBase) {
         this.jwtService = jwtService;
         this.apiBase = trimTrailingSlash(apiBase);
+        if (this.apiBase == null || this.apiBase.isBlank()) {
+            throw new IllegalArgumentException("Property 'url.api.2.1.base' is required.");
+        }
         webClient = WebClient.builder()
                 .codecs(codecs -> codecs.defaultCodecs().maxInMemorySize(-1))
                 .build();
@@ -103,7 +106,7 @@ public class HttpRequestService {
         }
 
         String path;
-        if (uri.startsWith(apiBase)) {
+        if (startsWithConfiguredBase(uri)) {
             path = uri.substring(apiBase.length());
             if (path.isEmpty()) {
                 path = "/";
@@ -121,6 +124,17 @@ public class HttpRequestService {
             throw new IllegalArgumentException("API request path must be relative to the configured API base URL.");
         }
         return path;
+    }
+
+    private boolean startsWithConfiguredBase(String uri) {
+        if (!uri.startsWith(apiBase)) {
+            return false;
+        }
+        if (uri.length() == apiBase.length()) {
+            return true;
+        }
+        char next = uri.charAt(apiBase.length());
+        return next == '/' || next == '?';
     }
 
     private static String trimTrailingSlash(String base) {
